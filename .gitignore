@@ -1,0 +1,5 @@
+/build/
+/dist/
+.idea/*
+*.pyc
+cmake-build-*
