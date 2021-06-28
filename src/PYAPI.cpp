@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <iostream>
-
+#include <opencv2/opencv.hpp>
 #include "lsd.h"
 
 
@@ -52,7 +52,7 @@ py::array_t<float> run_lsd(const py::array& img,
   double log_eps = 0;
 
   py::buffer_info info = img.request();
-  if (info.format != "d") {
+  if (info.format != "d" && info.format != "B" ) {
     throw py::type_error("Error: The provided numpy array has the wrong type");
   }
 
@@ -74,7 +74,16 @@ py::array_t<float> run_lsd(const py::array& img,
     throw py::type_error("Error: You should provide a 2 dimensional array.");
   }
 
-  auto *imagePtr = static_cast<double *>(info.ptr);
+  double *imagePtr;
+  cv::Mat tmp;
+  if (info.format == "d") {
+    imagePtr = static_cast<double *>(info.ptr);
+  } else {
+    tmp = cv::Mat(info.shape[0], info.shape[1], CV_8UC3, info.ptr);
+    tmp.convertTo(tmp, CV_64F);
+    imagePtr = tmp.ptr<double>();
+  }
+
 
   // LSD call. Returns [x1,y1,x2,y2,width,p,-log10(NFA)] for each segment
   int N;

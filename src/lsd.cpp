@@ -101,7 +101,7 @@
 #include <cfloat>
 #include <iostream>
 #include "lsd.h"
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 /** ln(10) */
 #ifndef M_LN10
