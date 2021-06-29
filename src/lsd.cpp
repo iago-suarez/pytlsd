@@ -1996,7 +1996,7 @@ double *LineSegmentDetection(int *n_out,
   rho = quant / sin(prec); /* gradient magnitude threshold */
   // Iago
   rho = UPM_GRADIENT_THRESHOLD_LSD;
-  std::cout << "LSD Gradient threshold: " << rho << std::endl;
+  // std::cout << "LSD Gradient threshold: " << rho << std::endl;
 
   image_double modgrad{}, angles{};
   if (modgrad_ptr) {

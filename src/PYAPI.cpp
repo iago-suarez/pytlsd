@@ -89,7 +89,7 @@ py::array_t<float> run_lsd(const py::array& img,
   int N;
   double *out = LineSegmentDetection(&N, imagePtr, info.shape[1], info.shape[0], scale, sigma_scale, quant,
                                      ang_th, log_eps, density_th, n_bins, modgrad_ptr, angles_ptr);
-  std::cout << "Detected " << N << " LSD Segments" << std::endl;
+  // std::cout << "Detected " << N << " LSD Segments" << std::endl;
 
   py::array_t<float> segments({N, 5});
   for (int i = 0; i < N; i++) {
