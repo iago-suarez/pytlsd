@@ -79,7 +79,7 @@ py::array_t<float> run_lsd(const py::array& img,
   if (info.format == "d") {
     imagePtr = static_cast<double *>(info.ptr);
   } else {
-    tmp = cv::Mat(info.shape[0], info.shape[1], CV_8UC3, info.ptr);
+    tmp = cv::Mat(info.shape[0], info.shape[1], CV_8UC1, info.ptr);
     tmp.convertTo(tmp, CV_64F);
     imagePtr = tmp.ptr<double>();
   }
