@@ -40,13 +40,13 @@ void check_img_format(const py::buffer_info& correct_info, const py::buffer_info
 py::array_t<float> run_lsd(const py::array& img,
                            double scale=0.8,
                            double sigma_scale=0.6,
+                           double density_th=0.0, /* Minimal density of region points in rectangle. */
                            const py::array& gradnorm = py::array(),
                            const py::array& gradangle = py::array()) {
   double quant = 2.0;       /* Bound to the quantization error on the
                                 gradient norm.                                */
   double ang_th = 22.5;     /* Gradient angle tolerance in degrees.           */
   // double log_eps = 0.0;     /* Detection threshold: -log10(NFA) > log_eps     */
-  double density_th = 0.7;  /* Minimal density of region points in rectangle. */
   int n_bins = 1024;        /* Number of bins in pseudo-ordering of gradient
                                modulus.                                       */
   double log_eps = 0;
@@ -125,6 +125,7 @@ PYBIND11_MODULE(pytlsd, m) {
           py::arg("img"),
           py::arg("scale") = 0.8,
           py::arg("sigma_scale") = 0.6,
+          py::arg("density_th") = 0.0,
           py::arg("gradnorm") = py::array(),
           py::arg("gradangle") = py::array());
 

@@ -52,6 +52,6 @@ for segment in segments:
     cv2.line(img_color, (int(segment[0]), int(segment[1])), (int(segment[2]), int(segment[3])), (0, 255, 0))
 
 plt.figure()
-plt.title("Detected segments")
+plt.title(f"Detected segments N {len(segments)}")
 plt.imshow(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))
 plt.show()
