@@ -3,3 +3,4 @@
 .idea/*
 *.pyc
 cmake-build-*
+/venv/*
