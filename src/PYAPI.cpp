@@ -1,9 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include "lsd.h"
-
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -75,13 +73,12 @@ py::array_t<float> run_lsd(const py::array& img,
   }
 
   double *imagePtr;
-  cv::Mat tmp;
   if (info.format == "d") {
     imagePtr = static_cast<double *>(info.ptr);
   } else {
-    tmp = cv::Mat(info.shape[0], info.shape[1], CV_8UC1, info.ptr);
-    tmp.convertTo(tmp, CV_64F);
-    imagePtr = tmp.ptr<double>();
+    py::array_t<double> img_f64 = img.cast<py::array_t<double>>();
+    py::buffer_info info_f64 = img_f64.request();
+    imagePtr = static_cast<double *>(info_f64.ptr);
   }
 
 
