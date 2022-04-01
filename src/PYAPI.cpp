@@ -35,12 +35,12 @@ void check_img_format(const py::buffer_info& correct_info, const py::buffer_info
 
 // Passing in a generic array
 // Passing in an array of doubles
-py::array_t<float> run_lsd(const py::array& img,
+py::array_t<float> run_lsd(const py::array_t<double>& img,
                            double scale=0.8,
                            double sigma_scale=0.6,
                            double density_th=0.0, /* Minimal density of region points in rectangle. */
-                           const py::array& gradnorm = py::array(),
-                           const py::array& gradangle = py::array()) {
+                           const py::array_t<double>& gradnorm = py::array_t<double>(),
+                           const py::array_t<double>& gradangle = py::array_t<double>()) {
   double quant = 2.0;       /* Bound to the quantization error on the
                                 gradient norm.                                */
   double ang_th = 22.5;     /* Gradient angle tolerance in degrees.           */
@@ -72,15 +72,7 @@ py::array_t<float> run_lsd(const py::array& img,
     throw py::type_error("Error: You should provide a 2 dimensional array.");
   }
 
-  double *imagePtr;
-  if (info.format == "d") {
-    imagePtr = static_cast<double *>(info.ptr);
-  } else {
-    py::array_t<double> img_f64 = img.cast<py::array_t<double>>();
-    py::buffer_info info_f64 = img_f64.request();
-    imagePtr = static_cast<double *>(info_f64.ptr);
-  }
-
+  double *imagePtr = static_cast<double *>(info.ptr);
 
   // LSD call. Returns [x1,y1,x2,y2,width,p,-log10(NFA)] for each segment
   int N;
