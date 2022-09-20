@@ -4,3 +4,4 @@
 *.pyc
 cmake-build-*
 /venv/*
+*.egg-info/
