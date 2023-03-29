@@ -96,6 +96,8 @@
                        modulus.
                        Suggested value: 1024
 
+    @params grad_nfa   Whether to compute the NFA based on the image gradient.
+
     @param reg_img     Optional output: if desired, LSD will return an
                        int image where each pixel indicates the line segment
                        to which it belongs. Unused pixels have the value '0',
@@ -139,7 +141,7 @@ double * LineSegmentDetection( int * n_out,
                                double * img, int X, int Y,
                                double scale, double sigma_scale, double quant,
                                double ang_th, double log_eps, double density_th,
-                               int n_bins,
+                               int n_bins, bool grad_nfa,
                                double * modgrad = nullptr, double * angles = nullptr,
                                int ** reg_img = nullptr,
                                int * reg_x = nullptr, int * reg_y = nullptr);

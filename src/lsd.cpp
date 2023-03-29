@@ -725,13 +725,13 @@ static void grad_angle_orientation(image_double in, double threshold, image_doub
   /* get memory for the image of gradient modulus */
   modgrad = new_image_double(in->xsize, in->ysize);
 
-  /* 'undefined' on the down and right boundaries */
-  for (x = 0; x < p; x++) g->data[(n - 1) * p + x] = NOTDEF;
-  for (y = 0; y < n; y++) g->data[p * y + p - 1] = NOTDEF;
+  /* 'undefined' on the up and left boundaries */
+  for (x = 0; x < p; x++) g->data[x] = NOTDEF;
+  for (y = 0; y < n; y++) g->data[p * y] = NOTDEF;
 
   /* compute gradient on the remaining pixels */
-  for (x = 0; x < p - 1; x++)
-    for (y = 0; y < n - 1; y++) {
+  for (x = 1; x < p; x++)
+    for (y = 1; y < n; y++) {
       adr = y * p + x;
 
       /*
@@ -745,8 +745,8 @@ static void grad_angle_orientation(image_double in, double threshold, image_doub
            gy = C+D - (A+B)   vertical difference
          com1 and com2 are just to avoid 2 additions.
        */
-      com1 = in->data[adr + p + 1] - in->data[adr];
-      com2 = in->data[adr + 1] - in->data[adr + p];
+      com1 = in->data[adr] - in->data[adr - p - 1];
+      com2 = in->data[adr - p] - in->data[adr - 1];
 
       gx = com1 + com2; /* gradient x component */
       gy = com1 - com2; /* gradient y component */
@@ -759,7 +759,8 @@ static void grad_angle_orientation(image_double in, double threshold, image_doub
         g->data[adr] = NOTDEF; /* gradient angle not defined */
       else {
         /* gradient angle computation */
-        g->data[adr] = atan2(gx, -gy);
+        //g->data[adr] = atan2(gx, -gy);
+        g->data[adr] = atan2(-gx, gy);
       }
     }
 }
@@ -1959,7 +1960,7 @@ double *LineSegmentDetection(int *n_out,
                              double *img, int X, int Y,
                              double scale, double sigma_scale, double quant,
                              double ang_th, double log_eps, double density_th,
-                             int n_bins,
+                             int n_bins, bool grad_nfa,
                              double * modgrad_ptr, double * angles_ptr,
                              int **reg_img, int *reg_x, int *reg_y) {
   image_double image;
@@ -1968,8 +1969,8 @@ double *LineSegmentDetection(int *n_out,
   image_double scaled_image;
   image_char used;
   image_int region = nullptr;
-  struct coorlist *list_p;
-  void *mem_p;
+  struct coorlist *list_p, *list_pp;
+  void *mem_p, *mem_pp;
   struct rect rec;
   struct point *reg;
   int reg_size, min_reg_size, i;
@@ -1998,6 +1999,7 @@ double *LineSegmentDetection(int *n_out,
   // std::cout << "LSD Gradient threshold: " << rho << std::endl;
 
   image_double modgrad{}, angles{};
+  image_double img_gradnorm{}, img_grad_angle{};
   if (modgrad_ptr) {
     modgrad = new_image_double_ptr(X, Y, modgrad_ptr);
   }
@@ -2007,12 +2009,18 @@ double *LineSegmentDetection(int *n_out,
 
   /* load and scale image (if necessary) and compute angle at each pixel */
   image = new_image_double_ptr((unsigned int) X, (unsigned int) Y, img);
+  scaled_image = gaussian_sampler(image, scale, sigma_scale);
   if (scale != 1.0) {
-    scaled_image = gaussian_sampler(image, scale, sigma_scale);
+    if (grad_nfa)
+      ll_angle(scaled_image, rho, &list_pp, &mem_pp, img_gradnorm, img_grad_angle, (unsigned int) n_bins);
     ll_angle(scaled_image, rho, &list_p, &mem_p, modgrad, angles, (unsigned int) n_bins);
-    free_image_double(scaled_image);
-  } else
+    
+  } else {
+    if (grad_nfa)
+      ll_angle(image, rho, &list_pp, &mem_pp, img_gradnorm, img_grad_angle, (unsigned int) n_bins);
     ll_angle(image, rho, &list_p, &mem_p, modgrad, angles, (unsigned int) n_bins);
+  }
+  free_image_double(scaled_image);
   xsize = angles->xsize;
   ysize = angles->ysize;
 
@@ -2069,12 +2077,15 @@ double *LineSegmentDetection(int *n_out,
          by R. Grompone von Gioi, J. Jakubowicz, J.M. Morel, and G. Randall.
          The original algorithm is obtained with density_th = 0.0.
        */
-      if (!refine(reg, &reg_size, modgrad, reg_angle,
-                  prec, p, &rec, used, angles, density_th))
-        continue;
+      // if (!refine(reg, &reg_size, modgrad, reg_angle,
+      //             prec, p, &rec, used, angles, density_th))
+      //   continue;
 
       /* compute NFA value */
-      log_nfa = rect_improve(&rec, angles, logNT, log_eps);
+      if(grad_nfa)
+        log_nfa = rect_improve(&rec, img_grad_angle, logNT, log_eps);
+      else
+        log_nfa = rect_improve(&rec, angles, logNT, log_eps);
       if (log_nfa <= log_eps) continue;
 
       /* A New Line Segment was found! */
@@ -2085,10 +2096,10 @@ double *LineSegmentDetection(int *n_out,
          points with an offset of (0.5,0.5), that should be added to output.
          The coordinates origin is at the center of pixel (0,0).
        */
-      rec.x1 += 0.5;
-      rec.y1 += 0.5;
-      rec.x2 += 0.5;
-      rec.y2 += 0.5;
+      // rec.x1 += 0.5;
+      // rec.y1 += 0.5;
+      // rec.x2 += 0.5;
+      // rec.y2 += 0.5;
 
       /* scale the result values if a subsampling was performed */
       if (scale != 1.0) {
@@ -2116,10 +2127,16 @@ double *LineSegmentDetection(int *n_out,
                                and should not be destroyed.                 */
   angles_ptr ? free(angles) : free_image_double(angles);
   modgrad_ptr ? free(modgrad) : free_image_double(modgrad);
+  if (grad_nfa) {
+    free_image_double(img_gradnorm);
+    free_image_double(img_grad_angle);
+  }
 
   free_image_char(used);
   free((void *) reg);
   free((void *) mem_p);
+  if (grad_nfa)
+    free((void *) mem_pp);
 
   /* return the result */
   if (reg_img != nullptr && reg_x != nullptr && reg_y != nullptr) {
@@ -2165,7 +2182,7 @@ double *lsd_scale_region(int *n_out,
                                modulus.                                       */
 
   return LineSegmentDetection(n_out, img, X, Y, scale, sigma_scale, quant,
-                              ang_th, log_eps, density_th, n_bins,
+                              ang_th, log_eps, density_th, n_bins, false,
                               nullptr, nullptr, reg_img, reg_x, reg_y);
 }
 
