@@ -5,3 +5,4 @@ Pillow>=8.2.0
 scikit-image>=0.17.2
 scikit-build
 scipy>=1.5.4
+pytest
