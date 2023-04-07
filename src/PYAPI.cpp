@@ -121,9 +121,11 @@ PYBIND11_MODULE(pytlsd, m) {
           py::arg("gradangle") = py::array(),
           py::arg("grad_nfa") = false);
 
+#ifndef _MSC_VER
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else
     m.attr("__version__") = "dev";
+#endif
 #endif
 }
