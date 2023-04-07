@@ -64,7 +64,7 @@ class CMakeBuild(build_ext):
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="pytlsd",
-    version="0.0.3",
+    version="0.0.4",
     author="Iago Suarez",
     author_email="iagoh92@gmail.com",
     description="Trainsparent bindings of LSD (Line Segment Detector)",
