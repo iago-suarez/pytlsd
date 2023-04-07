@@ -5,3 +5,6 @@ requires = [
     "cmake>=3.12",
 ]
 build-backend = "setuptools.build_meta"
+[tool.ruff]
+extend-exclude = ["pybind11"]
+line-length = 120
