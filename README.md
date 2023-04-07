@@ -9,7 +9,7 @@ Bindings over the original C implementation of LSD, that allows to change the di
 The current instructions were tested under Ubuntu 22.04:
 
 ```
-sudo apt-get install build-essential cmake libopencv-dev libopencv-contrib-dev libarpack++2-dev libarpack2-dev libsuperlu-dev
+sudo apt-get install build-essential cmake libopencv-dev
 git clone --recursive https://github.com/iago-suarez/pytlsd.git
 cd pytlsd
 pip3 install -r requirements.txt
