@@ -29,7 +29,7 @@ done
 brew install \
     git \
     cmake \
-    opencv
+    gcc
 
 brew info gcc
 brew upgrade gcc
