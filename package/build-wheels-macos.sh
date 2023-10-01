@@ -19,21 +19,17 @@ brew remove node@18
 
 brew update
 brew upgrade
-brew install wget cmake
+brew install git wget cmake
 
 for PYTHON_VERSION in ${PYTHON_VERSIONS[@]}; do
     brew install --force "python@${PYTHON_VERSION}"
     python${PYTHON_VERSION} -m pip install -U pip setuptools wheel cffi
 done
 
-brew install \
-    git \
-    cmake \
-    gcc
-
-brew info gcc
-brew upgrade gcc
-brew info gcc
+brew install llvm
+brew info llvm
+brew upgrade llvm
+brew info llvm
 
 # Install `delocate` -- OSX equivalent of `auditwheel`
 # see https://pypi.org/project/delocate/ for more details
