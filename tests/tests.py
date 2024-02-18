@@ -1,9 +1,11 @@
+import random
 import unittest
 
 import cv2
 import numpy as np
 import pytlsd
 from scipy.sparse import csgraph, csr_matrix
+from scipy.spatial.transform import Rotation
 from skimage.transform import pyramid_reduce
 
 
@@ -97,10 +99,30 @@ class StructureDetectionTest(unittest.TestCase):
 
     def test_batched_real_imgs(self) -> None:
         img = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
-        # TODO Generate synthetic variations
+        batch_size = 8
+        # Generate synthetic variations of img
+        batch = []
+        for i in range(batch_size):
+            H = np.eye(3)
+            H[0, 2] = 200 * (random.random() - 0.5)
+            H[1, 2] = 200 * (random.random() - 0.5)
+            s = 1 + 0.5 * random.random()
+            rot = (random.random() - 0.5) * 45
+            H = cv2.getRotationMatrix2D((img.shape[1] / 2, img.shape[0] / 2), rot, s) @ H
+            new_img = cv2.warpAffine(img, H.astype(np.float32), img.shape[::-1])
+            batch.append(new_img)
+
+        batch = np.array(batch)
+
         # Compute the result sequentially
+        expected = [pytlsd.lsd(b) for b in batch]
+
         # Compute the batched result
+        result = pytlsd.batched_lsd(batch)
+
         # Check that the results are the same
+        for i in range(batch_size):
+            self.assert_segs_close(result[i][:, :4], expected[i][:, :4], tol=0.5)
 
 
     def test_with_grads(self) -> None:

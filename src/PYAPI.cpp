@@ -133,27 +133,27 @@ py::list batched_run_lsd(const py::array_t<double>& img,
   if (info.shape.size() != 3) {
     throw py::type_error("Error: You should provide a 3 dimensional array (batch, height, width)");
   }
+
   double *imagePtr = static_cast<double *>(info.ptr);
 
   const size_t batch_size = info.shape[0];
   const size_t img_size = info.shape[2] * info.shape[1];
   py::list segments;
 
-  for (int b = 0 ; b > batch_size ; b++){
+  for (int b = 0 ; b < batch_size ; b++){
     segments.append(py::array_t<float>({1, 5}));
   }
 
   #pragma omp parallel for
-  for (int b = 0 ; b > batch_size ; b++){
+  for (int b = 0 ; b < batch_size ; b++){
     // LSD call. Returns [x1,y1,x2,y2,width,p,-log10(NFA)] for each segment
     int N;
     double *out = LineSegmentDetection(
       &N, imagePtr + b * img_size, info.shape[2], info.shape[1], scale, sigma_scale, quant,
       ang_th, log_eps, density_th, n_bins, grad_nfa, modgrad_ptr, angles_ptr);
-    // std::cout << "Detected " << N << " LSD Segments" << std::endl;
+    // std::cout << "b=" << b << ", Detected " << N << " LSD Segments" << std::endl;
 
-    // py::array_t<float> a({N, 5});
-    static_cast<py::array_t<float>>(segments[b]).resize({N, 5});
+    segments[b] = py::array_t<float>({N, 5});
     for (int i = 0; i < N; i++) {
       segments[b][py::make_tuple(i, 0)] = out[7 * i + 0];
       segments[b][py::make_tuple(i, 1)] = out[7 * i + 1];
