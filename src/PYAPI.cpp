@@ -144,7 +144,7 @@ py::list batched_run_lsd(const py::array_t<double>& img,
     segments.append(py::array_t<float>({1, 5}));
   }
 
-  #pragma omp parallel for
+  // #pragma omp parallel for
   for (int b = 0 ; b < batch_size ; b++){
     // LSD call. Returns [x1,y1,x2,y2,width,p,-log10(NFA)] for each segment
     int N;
