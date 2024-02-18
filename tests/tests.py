@@ -61,15 +61,51 @@ class StructureDetectionTest(unittest.TestCase):
         self.assertEqual(result.shape, (3, 5))
         self.assert_segs_close(result[:, :4], expected, tol=2.5)
 
+    def test_batched_triangle(self) -> None:
+        img = np.zeros((200, 200), np.uint8)
+        # Define the triangle
+        top = (100, 20)
+        left = (50, 160)
+        right = (150, 160)
+        expected = np.array([[*top, *right], [*right, *left], [*left, *top]])
+        # Draw triangle
+        cv2.drawContours(img, [expected.reshape(-1, 2)], 0, (255,), thickness=cv2.FILLED)
+
+        batch_img = [img]
+        batch_expected = [expected]
+        for _ in range(3):
+            batch_img.append(cv2.rotate(batch_img[-1], cv2.ROTATE_90_CLOCKWISE))
+            x0, y0, x1, y1 = batch_expected[-1].T
+            w = batch_img[-1].shape[1]
+            rotated_pts = np.stack([w - y0, x0, w - y1, x1], axis=-1)
+            batch_expected.append(rotated_pts)
+
+        batch_img = np.array(batch_img)
+
+        # result = [pytlsd.lsd(b) for b in batch_img]
+        result = pytlsd.batched_lsd(batch_img)
+
+        for e, r in zip(batch_expected, result):
+            self.assertEqual(r.shape, (3, 5))
+            self.assert_segs_close(r[:, :4], e, tol=2.5)
+
     def test_real_img(self) -> None:
-        img = cv2.imread('resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
         segments = pytlsd.lsd(img)
         # Check that it detects at least 500 segments
         self.assertGreater(len(segments), 500)
 
+    def test_batched_real_imgs(self) -> None:
+        img = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        # TODO Generate synthetic variations
+        # Compute the result sequentially
+        # Compute the batched result
+        # Check that the results are the same
+
+
     def test_with_grads(self) -> None:
         # Read one image
-        gray = cv2.imread('resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        gray = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
         flt_img = gray.astype(np.float64)
 
         scale_down = 0.8
