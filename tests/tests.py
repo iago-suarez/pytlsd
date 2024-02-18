@@ -91,13 +91,13 @@ class StructureDetectionTest(unittest.TestCase):
             self.assert_segs_close(r[:, :4], e, tol=2.5)
 
     def test_real_img(self) -> None:
-        img = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
         segments = pytlsd.lsd(img)
         # Check that it detects at least 500 segments
         self.assertGreater(len(segments), 500)
 
     def test_batched_real_imgs(self) -> None:
-        img = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
         batch_size = 8
         # Generate synthetic variations of img
         batch = []
@@ -126,7 +126,7 @@ class StructureDetectionTest(unittest.TestCase):
 
     def test_with_grads(self) -> None:
         # Read one image
-        gray = cv2.imread('../resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
+        gray = cv2.imread('resources/ai_001_001.frame.0000.color.jpg', cv2.IMREAD_GRAYSCALE)
         flt_img = gray.astype(np.float64)
 
         scale_down = 0.8
