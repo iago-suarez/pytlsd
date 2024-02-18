@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 import pytlsd
 from scipy.sparse import csgraph, csr_matrix
-from scipy.spatial.transform import Rotation
 from skimage.transform import pyramid_reduce
 
 
