@@ -14,6 +14,11 @@ message( STATUS "    OpenCV_INCLUDE_DIRS: " ${OpenCV_INCLUDE_DIRS})
 message( STATUS "    OpenCV_LIBS: " ${OpenCV_LIBS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    set(OpenMP_LIBS OpenMP::OpenMP_CXX)
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Declare the library containing the Line segment Detection (LSD) code
@@ -24,7 +29,7 @@ add_library(tlsd src/lsd.cpp)
 pybind11_add_module(pytlsd src/PYAPI.cpp)
 
 # Add the dependency between the LSD code and the bindings
-target_link_libraries(pytlsd PRIVATE tlsd ${OpenCV_LIBS})
+target_link_libraries(pytlsd PRIVATE tlsd ${OpenCV_LIBS} ${OpenMP_LIBS})
 
 target_compile_definitions(pytlsd PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
 
