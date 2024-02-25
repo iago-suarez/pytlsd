@@ -29,9 +29,10 @@ void check_img_format(const py::buffer_info& correct_info, const py::buffer_info
   }
 }
 
-//  return LineSegmentDetection(n_out, img, X, Y, scale, sigma_scale, quant,
-//                              ang_th, log_eps, density_th, n_bins,
-//                              reg_img, reg_x, reg_y);
+struct LineSegment
+{
+  double x1, y1, x2, y2, /*width, */ p /*, new_log10_NFA*/;
+};
 
 // Passing in a generic array
 // Passing in an array of doubles
@@ -80,7 +81,6 @@ py::array_t<float> run_lsd(const py::array_t<double>& img,
   double *out = LineSegmentDetection(
     &N, imagePtr, info.shape[1], info.shape[0], scale, sigma_scale, quant,
     ang_th, log_eps, density_th, n_bins, grad_nfa, modgrad_ptr, angles_ptr);
-  // std::cout << "Detected " << N << " LSD Segments" << std::endl;
 
   py::array_t<float> segments({N, 5});
   for (int i = 0; i < N; i++) {
@@ -138,11 +138,8 @@ py::list batched_run_lsd(const py::array_t<double>& img,
 
   const size_t batch_size = info.shape[0];
   const size_t img_size = info.shape[2] * info.shape[1];
-  py::list segments;
 
-  for (int b = 0 ; b < batch_size ; b++){
-    segments.append(py::array_t<float>({1, 5}));
-  }
+  std::vector<std::shared_ptr<std::vector<LineSegment>>> tmp(batch_size);
 
   #pragma omp parallel for
   for (int b = 0 ; b < batch_size ; b++){
@@ -151,20 +148,34 @@ py::list batched_run_lsd(const py::array_t<double>& img,
     double *out = LineSegmentDetection(
       &N, imagePtr + b * img_size, info.shape[2], info.shape[1], scale, sigma_scale, quant,
       ang_th, log_eps, density_th, n_bins, grad_nfa, modgrad_ptr, angles_ptr);
-    // std::cout << "b=" << b << ", Detected " << N << " LSD Segments" << std::endl;
 
-    segments[b] = py::array_t<float>({N, 5});
+    tmp[b] = std::make_shared< std::vector<LineSegment> >(N);
+    LineSegment * p_data = tmp[b]->data();
     for (int i = 0; i < N; i++) {
-      segments[b][py::make_tuple(i, 0)] = out[7 * i + 0];
-      segments[b][py::make_tuple(i, 1)] = out[7 * i + 1];
-      segments[b][py::make_tuple(i, 2)] = out[7 * i + 2];
-      segments[b][py::make_tuple(i, 3)] = out[7 * i + 3];
-      segments[b][py::make_tuple(i, 4)] = out[7 * i + 5];
-      // p:           out[7 * i + 4]);
-      // -log10(NFA): out[7 * i + 5]);
+      p_data->x1 = out[7 * i + 0];
+      p_data->y1 = out[7 * i + 1];
+      p_data->x2 = out[7 * i + 2];
+      p_data->y2 = out[7 * i + 3];
+      p_data->p = out[7 * i + 5];
+      p_data++;
     }
-    free((void *) out);
+    free(out);
   }
+
+  py::list segments;
+  for (int b = 0; b < batch_size; b++){
+    py::array_t<float> tmp2({int(tmp[b]->size()), 5});
+    for (int i = 0; i < tmp[b]->size(); i++){
+      tmp2[py::make_tuple(i, 0)] = tmp[b]->at(i).x1;
+      tmp2[py::make_tuple(i, 1)] = tmp[b]->at(i).y1;
+      tmp2[py::make_tuple(i, 2)] = tmp[b]->at(i).x2;
+      tmp2[py::make_tuple(i, 3)] = tmp[b]->at(i).y2;
+      tmp2[py::make_tuple(i, 4)] = tmp[b]->at(i).p;
+    }
+    segments.append(tmp2);
+
+  }
+
   return segments;
 }
 
