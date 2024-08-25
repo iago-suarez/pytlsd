@@ -34,25 +34,25 @@ jobs:
           name: pytlsd-${{ matrix.platform }}
           path: wheelhouse/pytlsd-*.whl
 
-  mac-build:
-    name: Wrapper macOS Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ macos-11, macos-12 ]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Build the macOS wheels
-        run: |
-          ./package/build-wheels-macos.sh
-      - name: Archive wheels
-        uses: actions/upload-artifact@v3
-        with:
-          name: pytlsd-${{ matrix.os }}
-          path: ./wheelhouse/pytlsd-*.whl
+#  mac-build:
+#    name: Wrapper macOS Build
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ macos-11, macos-12 ]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        with:
+#          submodules: recursive
+#      - name: Build the macOS wheels
+#        run: |
+#          ./package/build-wheels-macos.sh
+#      - name: Archive wheels
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: pytlsd-${{ matrix.os }}
+#          path: ./wheelhouse/pytlsd-*.whl
 
 #  pypi-publish:
 #    name: Publish wheels to PyPI
