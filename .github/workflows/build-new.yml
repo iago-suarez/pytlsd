@@ -19,7 +19,7 @@ jobs:
         platform: [ manylinux2014_x86_64 ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Build the Linux wheels
@@ -28,7 +28,7 @@ jobs:
           # cleanup for custom runner
           sudo chown -R $(whoami):$(whoami) .
       - name: Archive wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           # we strip the version number from the artifact name
           name: pytlsd-${{ matrix.platform }}
